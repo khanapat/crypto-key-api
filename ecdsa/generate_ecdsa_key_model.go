@@ -1,13 +1,10 @@
-package key
+package ecdsa
 
 import (
 	"fmt"
 
 	"github.com/pkg/errors"
-)
-
-const (
-	validateFieldError = "Invalid parameters"
+	"krungthai.com/khanapat/dpki/crypto-key-api/constant"
 )
 
 type GenerateEcdsaKeyRequest struct {
@@ -16,7 +13,7 @@ type GenerateEcdsaKeyRequest struct {
 
 func (req *GenerateEcdsaKeyRequest) validate() error {
 	if len(req.CurveType) <= 0 {
-		return errors.Wrap(errors.New(fmt.Sprintf("'curveType' must be REQUIRED field but the input is '%v'.", req.CurveType)), validateFieldError)
+		return errors.Wrap(errors.New(fmt.Sprintf("'curveType' must be REQUIRED field but the input is '%v'.", req.CurveType)), constant.ValidateFieldError)
 	}
 	return nil
 }

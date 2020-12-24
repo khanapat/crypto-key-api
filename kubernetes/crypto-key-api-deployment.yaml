@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: generate-key-deployment
+  name: crypto-key-api-deployment
   namespace: dpki
 spec:
   replicas: 1
@@ -12,20 +12,20 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: generate-key-deployment
+      app: crypto-key-api-deployment
   template:
     metadata:
       labels:
-        app: generate-key-deployment
+        app: crypto-key-api-deployment
     spec:
       containers:
-      - name: generate-key-deployment
-        image: kcskbcnd93.kcs:5000/dpki/generate-key-api:0.0.1
+      - name: crypto-key-api-deployment
+        image: kcskbcnd93.kcs:5000/dpki/crypto-key-api:0.0.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
-        - name: generate-key-configmap-volume
+        - name: crypto-key-api-configmap-volume
           mountPath: /app/config
       volumes:
-      - name: generate-key-configmap-volume
+      - name: crypto-key-api-configmap-volume
         configMap:
-          name: generate-key-configmap
+          name: crypto-key-api-configmap

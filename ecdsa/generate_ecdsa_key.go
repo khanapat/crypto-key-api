@@ -1,11 +1,11 @@
-package key
+package ecdsa
 
 import (
 	"context"
 
-	"krungthai.com/khanapat/dpki/generate-key-api/algorithm"
-	"krungthai.com/khanapat/dpki/generate-key-api/middleware"
-	"krungthai.com/khanapat/dpki/generate-key-api/response"
+	"krungthai.com/khanapat/dpki/crypto-key-api/algorithm"
+	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/response"
 )
 
 type GenerateEcdsaKeyFn func(ctx context.Context, req GenerateEcdsaKeyRequest) (response.Responser, error)

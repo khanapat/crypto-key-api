@@ -15,9 +15,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
-	"krungthai.com/khanapat/dpki/generate-key-api/key"
-	"krungthai.com/khanapat/dpki/generate-key-api/logger"
-	"krungthai.com/khanapat/dpki/generate-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/ecdsa"
+	"krungthai.com/khanapat/dpki/crypto-key-api/logger"
+	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
 )
 
 func init() {
@@ -42,6 +42,8 @@ func initViper() {
 func main() {
 	route := mux.NewRouter()
 
+	apiRoute := route.NewRoute().Subrouter()
+
 	cfgCors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},                                    // All origins
 		AllowedMethods:   []string{"GET", "HEAD", "POST", "PUT", "DELETE"}, // Allowing only get, just an example
@@ -53,16 +55,15 @@ func main() {
 
 	middleware := middleware.NewMiddleware(logger)
 
-	keyRoute := route.PathPrefix(viper.GetString("APP.CONTEXT.KEY")).Subrouter()
+	apiRoute.Use(middleware.JsonHeader)
+	apiRoute.Use(middleware.ContextLog)
+	apiRoute.Use(middleware.LogRequestInfo)
+	apiRoute.Use(middleware.LogResponseInfo)
 
-	keyRoute.Use(middleware.AccessControl)
-	keyRoute.Use(middleware.JsonHeader)
-	keyRoute.Use(middleware.ContextLog)
-	keyRoute.Use(middleware.LogRequestInfo)
-	keyRoute.Use(middleware.LogResponseInfo)
+	cryptoRoute := apiRoute.PathPrefix(viper.GetString("APP.CONTEXT.CRYPTO")).Subrouter()
 
-	keyRoute.Handle("/ecdsa", key.NewAsymmetricEcdsaKey(
-		key.NewGenerateEcdsaKeyFn(),
+	cryptoRoute.Handle("/ecdsa", ecdsa.NewAsymmetricEcdsaKey(
+		ecdsa.NewGenerateEcdsaKeyFn(),
 	)).Methods(http.MethodPost)
 
 	srv := &http.Server{

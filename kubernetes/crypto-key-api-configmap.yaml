@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: generate-key-configmap
+  name: crypto-key-api-configmap
   namespace: dpki
 data:
   config.yaml: |+
@@ -10,7 +10,7 @@ data:
       PORT: "9090"
       TIMEOUT: 60  
       CONTEXT:
-        KEY: "/blockchain/dpki/v1/key"
+        CRYPTO: "/ktb/blockchain/v1/crypto"
 
     LOG:
       LEVEL: "debug"

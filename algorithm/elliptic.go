@@ -11,7 +11,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"krungthai.com/khanapat/dpki/generate-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
 )
 
 const (
@@ -37,7 +37,7 @@ func GenerateEcdsaKey(ctx context.Context, curveType string) (*ecdsa.PrivateKey,
 	if err != nil {
 		return nil, errors.Wrap(err, generateKeyTopic)
 	}
-	logger.Debug(fmt.Sprintf("PrivateKey - %x", privateKey))
+	logger.Debug(fmt.Sprintf("PrivateKey - %v", privateKey))
 	return privateKey, nil
 }
 
@@ -108,7 +108,7 @@ func MarshalEcdsaPrivateKey(privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	}
 	pem := pem.EncodeToMemory(
 		&pem.Block{
-			Type:  "ECDSA PRIVATE KEY",
+			Type:  "EC PRIVATE KEY",
 			Bytes: privByte,
 		},
 	)
@@ -122,7 +122,7 @@ func MarshalEcdsaPublicKey(publicKey *ecdsa.PublicKey) ([]byte, error) {
 	}
 	pem := pem.EncodeToMemory(
 		&pem.Block{
-			Type:  "ECDSA PUBLIC KEY",
+			Type:  "EC PUBLIC KEY",
 			Bytes: pubByte,
 		},
 	)

@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"krungthai.com/khanapat/dpki/generate-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
 )
 
 const (

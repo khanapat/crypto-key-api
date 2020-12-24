@@ -3,7 +3,7 @@ APP:
   PORT: "9090"
   TIMEOUT: 60  
   CONTEXT:
-    KEY: "/blockchain/dpki/v1/key"
+    CRYPTO: "/ktb/blockchain/v1/crypto"
 
 LOG:
   LEVEL: "debug"

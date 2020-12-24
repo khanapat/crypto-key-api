@@ -1,11 +1,11 @@
-package key
+package ecdsa
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"krungthai.com/khanapat/dpki/generate-key-api/middleware"
-	"krungthai.com/khanapat/dpki/generate-key-api/response"
+	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/response"
 )
 
 type asymmetricEcdsaKey struct {

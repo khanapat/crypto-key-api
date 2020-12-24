@@ -63,13 +63,6 @@ func (m *middleware) JsonHeader(next http.Handler) http.Handler {
 	})
 }
 
-func (m *middleware) AccessControl(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(accessControl, "*")
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (m *middleware) XRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rid := uuid.New().String()

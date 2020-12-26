@@ -42,3 +42,35 @@ func TestHashSha(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEcdsaPublicKeyFromPemStr(t *testing.T) {
+	given := "-----BEGIN EC PUBLIC KEY-----\nFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEPTgKWRN8/B4nuu1mQZKDqTTkn0iL\noXgcr3b7vato8wWjovedFT+rWQHN2pU0CEGCbGmtwn7b0WsypkIRgWeUsA==\n-----END EC PUBLIC KEY-----\n"
+	want := "nice"
+
+	get, err := ParseEcdsaPublicKeyFromPemStr(given)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(get)
+	if want != fmt.Sprintf("%x", get) {
+		t.Errorf("given %q want %q but got %q\n", given, want, get)
+	}
+}
+
+type ABC struct {
+	A string
+	B int
+	C bool
+}
+
+func TestStruct(t *testing.T) {
+	var req ABC
+
+	fmt.Println(req)
+
+	req.A = "BOBO"
+	req.B = 123
+	req.C = true
+
+	fmt.Println(req)
+}

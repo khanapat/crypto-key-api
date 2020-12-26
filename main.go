@@ -16,6 +16,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 	"krungthai.com/khanapat/dpki/crypto-key-api/ecdsa"
+	"krungthai.com/khanapat/dpki/crypto-key-api/key"
 	"krungthai.com/khanapat/dpki/crypto-key-api/logger"
 	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
 )
@@ -55,15 +56,16 @@ func main() {
 
 	middleware := middleware.NewMiddleware(logger)
 
-	apiRoute.Use(middleware.JsonHeader)
-	apiRoute.Use(middleware.ContextLog)
-	apiRoute.Use(middleware.LogRequestInfo)
-	apiRoute.Use(middleware.LogResponseInfo)
+	apiRoute.Use(middleware.ContextLogAndLoggingMiddleware)
 
 	cryptoRoute := apiRoute.PathPrefix(viper.GetString("APP.CONTEXT.CRYPTO")).Subrouter()
 
 	cryptoRoute.Handle("/ecdsa", ecdsa.NewAsymmetricEcdsaKey(
 		ecdsa.NewGenerateEcdsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/public_key/validate", key.NewValidationPublicKey(
+		key.NewValidatePublicKeyFn(),
 	)).Methods(http.MethodPost)
 
 	srv := &http.Server{

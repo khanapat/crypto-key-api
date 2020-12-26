@@ -48,32 +48,11 @@ func ContextData(ctx context.Context) *zap.Logger {
 	return nil
 }
 
-func (m *middleware) ContextLog(next http.Handler) http.Handler {
+func (m *middleware) ContextLogAndLoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(context.Background(), key, m.ZapLogger)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func (m *middleware) JsonHeader(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(contentType, applicationJSON)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (m *middleware) XRequestID(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rid := uuid.New().String()
-		r.Header.Set(xRequestID, rid)
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (m *middleware) LogRequestInfo(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := m.ZapLogger.With(
+			zap.String(xRequestID, uuid.New().String()),
+		)
 		r.Body = &HackReqBody{
 			ReadCloser: r.Body,
 			method:     r.Method,
@@ -81,20 +60,10 @@ func (m *middleware) LogRequestInfo(next http.Handler) http.Handler {
 			requestURI: r.RequestURI,
 			remoteAddr: r.RemoteAddr,
 			header:     r.Header,
-			logger:     m.ZapLogger,
+			logger:     log,
 		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (m *middleware) LogResponseInfo(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w = &HackResBody{
-			w,
-			m.ZapLogger,
-		}
-
-		next.ServeHTTP(w, r)
+		w.Header().Set(contentType, applicationJSON)
+		next.ServeHTTP(&HackResBody{w, log}, r.WithContext(context.WithValue(r.Context(), key, log)))
 	})
 }
 
@@ -115,7 +84,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 		if stringToInt(h.header.Get(contentLength)) > contentLengthByte {
 			tempBody += string(body[:n])
 			if n < contentLengthByte {
-				h.logger.Info(requestInfoMsg,
+				h.logger.Debug(requestInfoMsg,
 					zap.String("body", tempBody),
 					zap.String("method", h.method),
 					zap.String("host", h.host),
@@ -127,7 +96,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 				tempBody = ""
 			}
 		} else {
-			h.logger.Info(requestInfoMsg,
+			h.logger.Debug(requestInfoMsg,
 				zap.String("body", string(body[:n])),
 				zap.String("method", h.method),
 				zap.String("host", h.host),
@@ -149,7 +118,7 @@ type HackResBody struct {
 
 func (h *HackResBody) Write(b []byte) (int, error) {
 	defer func() {
-		h.logger.Info(responseInfoMsg,
+		h.logger.Debug(responseInfoMsg,
 			zap.String("body", string(b)),
 			zap.String("content_type", h.Header().Get(contentType)),
 			zap.String(xRequestID, h.Header().Get(xRequestID)),

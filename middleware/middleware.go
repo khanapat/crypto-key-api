@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -11,19 +12,20 @@ import (
 )
 
 const (
-	requestInfoMsg    = "Request Information"
-	responseInfoMsg   = "Response Information"
-	xRequestID        = "X-Request-ID"
-	contentType       = "Content-Type"
-	applicationJSON   = "application/json"
-	accessControl     = "Access-Control-Allow-Origin"
-	contentLength     = "Content-Length"
-	contentLengthByte = 512
-	key               = "logger"
+	requestInfoMsg    string = "Request Information"
+	responseInfoMsg   string = "Response Information"
+	xRequestID        string = "X-Request-ID"
+	contentType       string = "Content-Type"
+	applicationJSON   string = "application/json"
+	accessControl     string = "Access-Control-Allow-Origin"
+	contentLength     string = "Content-Length"
+	contentLengthByte int    = 512
+	key               string = "logger"
 )
 
 var (
-	tempBody string
+	tempBody  string
+	tempCount int
 )
 
 type middleware struct {
@@ -53,14 +55,25 @@ func (m *middleware) ContextLogAndLoggingMiddleware(next http.Handler) http.Hand
 		log := m.ZapLogger.With(
 			zap.String(xRequestID, uuid.New().String()),
 		)
-		r.Body = &HackReqBody{
-			ReadCloser: r.Body,
-			method:     r.Method,
-			host:       r.Host,
-			requestURI: r.RequestURI,
-			remoteAddr: r.RemoteAddr,
-			header:     r.Header,
-			logger:     log,
+		if r.Method == "GET" {
+			log.Debug(requestInfoMsg,
+				zap.String("body", tempBody),
+				zap.String("method", r.Method),
+				zap.String("host", r.Host),
+				zap.String("path_uri", r.RequestURI),
+				zap.String("remote_addr", r.RemoteAddr),
+				zap.String("content_type", r.Header.Get(contentType)),
+			)
+		} else {
+			r.Body = &HackReqBody{
+				ReadCloser: r.Body,
+				method:     r.Method,
+				host:       r.Host,
+				requestURI: r.RequestURI,
+				remoteAddr: r.RemoteAddr,
+				header:     r.Header,
+				logger:     log,
+			}
 		}
 		w.Header().Set(contentType, applicationJSON)
 		next.ServeHTTP(&HackResBody{w, log}, r.WithContext(context.WithValue(r.Context(), key, log)))
@@ -83,7 +96,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 	defer func() {
 		if stringToInt(h.header.Get(contentLength)) > contentLengthByte {
 			tempBody += string(body[:n])
-			if n < contentLengthByte {
+			if n < (contentLengthByte * int(math.Pow(2.0, float64(tempCount)))) {
 				h.logger.Debug(requestInfoMsg,
 					zap.String("body", tempBody),
 					zap.String("method", h.method),
@@ -91,9 +104,11 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 					zap.String("path_uri", h.requestURI),
 					zap.String("remote_addr", h.remoteAddr),
 					zap.String("content_type", h.header.Get(contentType)),
-					zap.String(xRequestID, h.header.Get(xRequestID)),
 				)
 				tempBody = ""
+				tempCount = 0
+			} else {
+				tempCount++
 			}
 		} else {
 			h.logger.Debug(requestInfoMsg,
@@ -103,8 +118,9 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 				zap.String("path_uri", h.requestURI),
 				zap.String("remote_addr", h.remoteAddr),
 				zap.String("content_type", h.header.Get(contentType)),
-				zap.String(xRequestID, h.header.Get(xRequestID)),
 			)
+			tempBody = ""
+			tempCount = 0
 		}
 	}()
 	n, err = h.ReadCloser.Read(body)
@@ -121,7 +137,6 @@ func (h *HackResBody) Write(b []byte) (int, error) {
 		h.logger.Debug(responseInfoMsg,
 			zap.String("body", string(b)),
 			zap.String("content_type", h.Header().Get(contentType)),
-			zap.String(xRequestID, h.Header().Get(xRequestID)),
 		)
 	}()
 

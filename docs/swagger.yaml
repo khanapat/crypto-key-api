@@ -1,0 +1,258 @@
+basePath: /
+definitions:
+  ecdsa.GenerateEcdsaKeyRequest:
+    properties:
+      curveType:
+        type: string
+    type: object
+  ecdsa.GenerateEcdsaKeyResponse:
+    properties:
+      privateKey:
+        type: string
+      publicKey:
+        type: string
+    type: object
+  ecdsa.SignEcdsaKeyRequest:
+    properties:
+      hashType:
+        example: sha256
+        type: string
+      message:
+        example: trust
+        type: string
+      privateKey:
+        example: |
+          -----BEGIN ECDSA PRIVATE KEY-----
+          MHcCAQEEIB5g4Upn7ewh+vSLq9f4WJxdbhTfpsYa0SYaEkDl7xZPoAoGCCqGSM49
+          AwEHoUQDQgAEmacWvMg72qXbAuh1JnfFwjY5eU1SxAiphgN3UQXTzlHJR0RGJsSL
+          RuYpbc5asjL+oXvQ41ENxbYE58EsXMhbOw==
+          -----END ECDSA PRIVATE KEY-----
+        type: string
+    type: object
+  ecdsa.SignEcdsaKeyResponse:
+    properties:
+      signByte:
+        example: MEUCIQCi+IDRTl/cU1lsu5BLDqnCQY11oy2fsQdAGWbFheodHQIgAc8OdD5ahT2peGT1R2czo9TsTgCXKSGyjUDvp3adFaI=
+        type: string
+      signHex:
+        example: 3045022100a2f880d14e5fdc53596cbb904b0ea9c2418d75a32d9fb107401966c585ea1d1d022001cf0e743e5a853da97864f5476733a3d4ec4e00972921b28d40efa7769d15a2
+        type: string
+    type: object
+  ecdsa.VerifyEcdsaKeyRequest:
+    properties:
+      hashType:
+        example: sha256
+        type: string
+      message:
+        example: trust
+        type: string
+      publicKey:
+        example: |
+          -----BEGIN ECDSA PRIVATE KEY-----
+          MHcCAQEEIB5g4Upn7ewh+vSLq9f4WJxdbhTfpsYa0SYaEkDl7xZPoAoGCCqGSM49
+          AwEHoUQDQgAEmacWvMg72qXbAuh1JnfFwjY5eU1SxAiphgN3UQXTzlHJR0RGJsSL
+          RuYpbc5asjL+oXvQ41ENxbYE58EsXMhbOw==
+          -----END ECDSA PRIVATE KEY-----
+        type: string
+      signature:
+        example: MEUCIQCi+IDRTl/cU1lsu5BLDqnCQY11oy2fsQdAGWbFheodHQIgAc8OdD5ahT2peGT1R2czo9TsTgCXKSGyjUDvp3adFaI=
+        type: string
+    type: object
+  ecdsa.VerifyEcdsaKeyResponse:
+    properties:
+      validation:
+        example: true
+        type: boolean
+    type: object
+  key.ValidatePublicKeyRequest:
+    properties:
+      publicKey:
+        type: string
+    type: object
+  key.ValidatePublicKeyResponse:
+    properties:
+      publicKeyStatus:
+        type: boolean
+      publicKeyType:
+        type: string
+    type: object
+  response.ErrResponse:
+    properties:
+      code:
+        example: "400"
+        type: string
+      error:
+        type: object
+      message:
+        example: Bad Request
+        type: string
+    type: object
+  response.Response:
+    properties:
+      code:
+        example: "200"
+        type: string
+      data:
+        type: object
+      message:
+        example: Success
+        type: string
+    type: object
+host: localhost:9090
+info:
+  contact:
+    email: blockchain.info@krungthai.co.th
+    name: KTB Blockchain Team
+    url: http://www.swagger.io/support
+  description: API Service for managing key.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Crypto Key API
+  version: "1.0"
+paths:
+  /ktb/blockchain/v1/crypto/ecdsa:
+    post:
+      consumes:
+      - application/json
+      description: Method for generating key.
+      parameters:
+      - description: object body for generating key.
+        in: body
+        name: GenerateEcdsaKey
+        required: true
+        schema:
+          $ref: '#/definitions/ecdsa.GenerateEcdsaKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecdsa.GenerateEcdsaKeyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+      summary: Generate ECDSA Key
+      tags:
+      - ECDSA
+  /ktb/blockchain/v1/crypto/ecdsa/sign:
+    post:
+      consumes:
+      - application/json
+      description: Method for signing signature.
+      parameters:
+      - description: object body for signing message.
+        in: body
+        name: SignEcdsaKey
+        required: true
+        schema:
+          $ref: '#/definitions/ecdsa.SignEcdsaKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecdsa.SignEcdsaKeyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+      summary: Sign Message
+      tags:
+      - ECDSA
+  /ktb/blockchain/v1/crypto/ecdsa/verify:
+    post:
+      consumes:
+      - application/json
+      description: Method for verifying signature.
+      parameters:
+      - description: object body for verifying signature.
+        in: body
+        name: VerifyEcdsaKey
+        required: true
+        schema:
+          $ref: '#/definitions/ecdsa.VerifyEcdsaKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/ecdsa.VerifyEcdsaKeyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+      summary: Verify Signature
+      tags:
+      - ECDSA
+  /ktb/blockchain/v1/crypto/public_key/validate:
+    post:
+      consumes:
+      - application/json
+      description: Method for validating key.
+      parameters:
+      - description: object body for validating key.
+        in: body
+        name: ValidatePublicKey
+        required: true
+        schema:
+          $ref: '#/definitions/key.ValidatePublicKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/key.ValidatePublicKeyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrResponse'
+      summary: Validation Publice Key
+      tags:
+      - KEY
+schemes:
+- http
+- https
+swagger: "2.0"

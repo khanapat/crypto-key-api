@@ -18,6 +18,17 @@ func NewValidationPublicKey(validatePublicKeyFn ValidatePublicKeyFn) http.Handle
 	}
 }
 
+// ValidationPublicKey example
+// @Summary Validation Publice Key
+// @Description Method for validating key.
+// @Tags KEY
+// @Accept json
+// @Produce json
+// @Param ValidatePublicKey body key.ValidatePublicKeyRequest true "object body for validating key."
+// @Success 200 {object} response.Response{data=key.ValidatePublicKeyResponse} "Success"
+// @Failure 400 {object} response.ErrResponse "Bad Request"
+// @Failure 500 {object} response.ErrResponse "Internal Server Error"
+// @Router /ktb/blockchain/v1/crypto/public_key/validate [post]
 func (vk *validationPublicKey) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.ContextData(r.Context())
 

@@ -15,6 +15,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"krungthai.com/khanapat/dpki/crypto-key-api/docs"
+	_ "krungthai.com/khanapat/dpki/crypto-key-api/docs"
 	"krungthai.com/khanapat/dpki/crypto-key-api/ecdsa"
 	"krungthai.com/khanapat/dpki/crypto-key-api/key"
 	"krungthai.com/khanapat/dpki/crypto-key-api/logger"
@@ -40,10 +43,20 @@ func initViper() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 }
 
+// @title Crypto Key API
+// @version 1.0
+// @description API Service for managing key.
+// @termsOfService http://swagger.io/terms/
+// @contact.name KTB Blockchain Team
+// @contact.url http://www.swagger.io/support
+// @contact.email blockchain.info@krungthai.co.th
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:9090
+// @BasePath /
+// @schemes http https
 func main() {
 	route := mux.NewRouter()
-
-	apiRoute := route.NewRoute().Subrouter()
 
 	cfgCors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},                                    // All origins
@@ -52,16 +65,27 @@ func main() {
 		AllowCredentials: true,
 	})
 
+	registerSwaggerRoute(route)
+
 	logger := logger.NewLogConfig()
 
 	middleware := middleware.NewMiddleware(logger)
 
-	apiRoute.Use(middleware.ContextLogAndLoggingMiddleware)
+	cryptoRoute := route.PathPrefix(viper.GetString("APP.CONTEXT.CRYPTO")).Subrouter()
 
-	cryptoRoute := apiRoute.PathPrefix(viper.GetString("APP.CONTEXT.CRYPTO")).Subrouter()
+	cryptoRoute.Use(middleware.JSONMiddleware)
+	cryptoRoute.Use(middleware.ContextLogAndLoggingMiddleware)
 
 	cryptoRoute.Handle("/ecdsa", ecdsa.NewAsymmetricEcdsaKey(
 		ecdsa.NewGenerateEcdsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/ecdsa/sign", ecdsa.NewSignEcdsaKey(
+		ecdsa.NewSignEcdsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/ecdsa/verify", ecdsa.NewVerifyEcdsaKey(
+		ecdsa.NewVerifyEcdsaKeyFn(),
 	)).Methods(http.MethodPost)
 
 	cryptoRoute.Handle("/public_key/validate", key.NewValidationPublicKey(
@@ -96,4 +120,15 @@ func main() {
 
 	logger.Info("shutting down")
 	os.Exit(0)
+}
+
+func registerSwaggerRoute(route *mux.Router) {
+	route.PathPrefix("/crypto-key-api/").Handler(httpSwagger.Handler(
+		httpSwagger.URL(fmt.Sprintf("http://%s/crypto-key-api/swagger/doc.json", viper.GetString("APP.SWAGGER.HOST"))),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("#swagger-ui"),
+	))
+	docs.SwaggerInfo.Host = viper.GetString("APP.SWAGGER.HOST")
+	docs.SwaggerInfo.BasePath = viper.GetString("APP.CONTEXT.CRYPTO")
 }

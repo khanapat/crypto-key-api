@@ -1,5 +1,8 @@
 package common
 
 const (
-	ValidateFieldError = "Invalid parameters"
+	AuthorizationHeader     string = "Authorization"
+	XRequestID              string = "X-Request-ID"
+	XConsumerCustomIDHeader string = "X-Consumer-Custom-ID"
+	LoggerKey               string = "Logger"
 )

@@ -8,31 +8,31 @@ import (
 	"krungthai.com/khanapat/dpki/crypto-key-api/response"
 )
 
-type asymmetricEcdsaKey struct {
-	GenerateEcdsaKeyFn GenerateEcdsaKeyFn
+type signEcdsaKey struct {
+	SignEcdsaKeyFn SignEcdsaKeyFn
 }
 
-func NewAsymmetricEcdsaKey(generateEcdsaKeyFn GenerateEcdsaKeyFn) http.Handler {
-	return &asymmetricEcdsaKey{
-		GenerateEcdsaKeyFn: generateEcdsaKeyFn,
+func NewSignEcdsaKey(signEcdsaKeyFn SignEcdsaKeyFn) http.Handler {
+	return &signEcdsaKey{
+		SignEcdsaKeyFn: signEcdsaKeyFn,
 	}
 }
 
-// GenerateKey example
-// @Summary Generate ECDSA Key
-// @Description Method for generating key.
+// SignMessage example
+// @Summary Sign Message
+// @Description Method for signing signature.
 // @Tags ECDSA
 // @Accept json
 // @Produce json
-// @Param GenerateEcdsaKey body ecdsa.GenerateEcdsaKeyRequest true "object body for generating key."
-// @Success 200 {object} response.Response{data=ecdsa.GenerateEcdsaKeyResponse} "Success"
+// @Param SignEcdsaKey body ecdsa.SignEcdsaKeyRequest true "object body for signing message."
+// @Success 200 {object} response.Response{data=ecdsa.SignEcdsaKeyResponse} "Success"
 // @Failure 400 {object} response.ErrResponse "Bad Request"
 // @Failure 500 {object} response.ErrResponse "Internal Server Error"
-// @Router /ktb/blockchain/v1/crypto/ecdsa [post]
-func (ak *asymmetricEcdsaKey) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// @Router /ktb/blockchain/v1/crypto/ecdsa/sign [post]
+func (s *signEcdsaKey) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.ContextData(r.Context())
 
-	var req GenerateEcdsaKeyRequest
+	var req SignEcdsaKeyRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logger.Error(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -48,7 +48,7 @@ func (ak *asymmetricEcdsaKey) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resp, err := ak.GenerateEcdsaKeyFn(r.Context(), req)
+	resp, err := s.SignEcdsaKeyFn(r.Context(), req)
 	if err != nil {
 		logger.Error(err.Error())
 		w.WriteHeader(http.StatusBadRequest)

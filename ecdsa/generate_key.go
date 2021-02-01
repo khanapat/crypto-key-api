@@ -27,8 +27,8 @@ func NewGenerateEcdsaKeyFn() GenerateEcdsaKeyFn {
 			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrBadRequestDesc, err.Error()), err
 		}
 		resp := GenerateEcdsaKeyResponse{
-			PublicKey:  string(privatePem),
-			PrivateKey: string(publicPem),
+			PublicKey:  string(publicPem),
+			PrivateKey: string(privatePem),
 		}
 		logger.Info("Create Public & Private Key Success")
 		return response.NewResponse(response.SuccessCode, response.SuccessDesc, &resp), nil

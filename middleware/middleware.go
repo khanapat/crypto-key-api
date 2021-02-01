@@ -9,18 +9,17 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"krungthai.com/khanapat/dpki/crypto-key-api/common"
 )
 
 const (
 	requestInfoMsg    string = "Request Information"
 	responseInfoMsg   string = "Response Information"
-	xRequestID        string = "X-Request-ID"
 	contentType       string = "Content-Type"
 	applicationJSON   string = "application/json"
 	accessControl     string = "Access-Control-Allow-Origin"
 	contentLength     string = "Content-Length"
 	contentLengthByte int    = 512
-	key               string = "logger"
 )
 
 var (
@@ -39,7 +38,7 @@ func NewMiddleware(zapLogger *zap.Logger) *middleware {
 }
 
 func ContextData(ctx context.Context) *zap.Logger {
-	v := ctx.Value(key)
+	v := ctx.Value(common.LoggerKey)
 	if v == nil {
 		return nil
 	}
@@ -52,17 +51,18 @@ func ContextData(ctx context.Context) *zap.Logger {
 
 func (m *middleware) ContextLogAndLoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(common.XRequestID) == "" {
+			r.Header.Set(common.XRequestID, uuid.New().String())
+		}
 		log := m.ZapLogger.With(
-			zap.String(xRequestID, uuid.New().String()),
+			zap.String(common.XRequestID, r.Header.Get(common.XRequestID)),
 		)
 		if r.Method == "GET" {
 			log.Debug(requestInfoMsg,
-				zap.String("body", tempBody),
 				zap.String("method", r.Method),
 				zap.String("host", r.Host),
 				zap.String("path_uri", r.RequestURI),
 				zap.String("remote_addr", r.RemoteAddr),
-				zap.String("content_type", r.Header.Get(contentType)),
 			)
 		} else {
 			r.Body = &HackReqBody{
@@ -75,8 +75,15 @@ func (m *middleware) ContextLogAndLoggingMiddleware(next http.Handler) http.Hand
 				logger:     log,
 			}
 		}
+		next.ServeHTTP(&HackResBody{w, log}, r.WithContext(context.WithValue(r.Context(), common.LoggerKey, log)))
+	})
+}
+
+func (m *middleware) JSONMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(accessControl, "*")
 		w.Header().Set(contentType, applicationJSON)
-		next.ServeHTTP(&HackResBody{w, log}, r.WithContext(context.WithValue(r.Context(), key, log)))
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -104,6 +111,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 					zap.String("path_uri", h.requestURI),
 					zap.String("remote_addr", h.remoteAddr),
 					zap.String("content_type", h.header.Get(contentType)),
+					zap.String(common.XConsumerCustomIDHeader, h.header.Get(common.XConsumerCustomIDHeader)),
 				)
 				tempBody = ""
 				tempCount = 0
@@ -118,6 +126,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 				zap.String("path_uri", h.requestURI),
 				zap.String("remote_addr", h.remoteAddr),
 				zap.String("content_type", h.header.Get(contentType)),
+				zap.String(common.XConsumerCustomIDHeader, h.header.Get(common.XConsumerCustomIDHeader)),
 			)
 			tempBody = ""
 			tempCount = 0

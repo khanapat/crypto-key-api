@@ -4,6 +4,8 @@ APP:
   TIMEOUT: 60  
   CONTEXT:
     CRYPTO: "/ktb/blockchain/v1/crypto"
+  SWAGGER:
+    HOST: "localhost:9090"
 
 LOG:
   LEVEL: "debug"

@@ -63,6 +63,7 @@ func (m *middleware) ContextLogAndLoggingMiddleware(next http.Handler) http.Hand
 				zap.String("host", r.Host),
 				zap.String("path_uri", r.RequestURI),
 				zap.String("remote_addr", r.RemoteAddr),
+				zap.Reflect("header", r.Header),
 			)
 		} else {
 			r.Body = &HackReqBody{
@@ -111,7 +112,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 					zap.String("path_uri", h.requestURI),
 					zap.String("remote_addr", h.remoteAddr),
 					zap.String("content_type", h.header.Get(contentType)),
-					zap.String(common.XConsumerCustomIDHeader, h.header.Get(common.XConsumerCustomIDHeader)),
+					zap.Reflect("header", h.header),
 				)
 				tempBody = ""
 				tempCount = 0
@@ -126,7 +127,7 @@ func (h *HackReqBody) Read(body []byte) (int, error) {
 				zap.String("path_uri", h.requestURI),
 				zap.String("remote_addr", h.remoteAddr),
 				zap.String("content_type", h.header.Get(contentType)),
-				zap.String(common.XConsumerCustomIDHeader, h.header.Get(common.XConsumerCustomIDHeader)),
+				zap.Reflect("header", h.header),
 			)
 			tempBody = ""
 			tempCount = 0

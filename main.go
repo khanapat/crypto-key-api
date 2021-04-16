@@ -22,6 +22,7 @@ import (
 	"krungthai.com/khanapat/dpki/crypto-key-api/key"
 	"krungthai.com/khanapat/dpki/crypto-key-api/logger"
 	"krungthai.com/khanapat/dpki/crypto-key-api/middleware"
+	"krungthai.com/khanapat/dpki/crypto-key-api/rsa"
 )
 
 func init() {
@@ -86,6 +87,18 @@ func main() {
 
 	cryptoRoute.Handle("/ecdsa/verify", ecdsa.NewVerifyEcdsaKey(
 		ecdsa.NewVerifyEcdsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/rsa", rsa.NewAsymmetricRsaKey(
+		rsa.NewGenerateRsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/rsa/encryption", rsa.NewEncryptRsaKey(
+		rsa.NewEncryptRsaKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/rsa/decryption", rsa.NewDecryptRsaKey(
+		rsa.NewDecryptRsaKeyFn(),
 	)).Methods(http.MethodPost)
 
 	cryptoRoute.Handle("/public_key/validate", key.NewValidationPublicKey(

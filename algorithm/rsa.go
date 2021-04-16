@@ -14,10 +14,12 @@ import (
 )
 
 const (
-	signRsaTopic     = "Signing Rsa"
-	verifyRsaTopic   = "Verifying Rsa"
-	parseRsaPriTopic = "Parsing Private Key Rsa"
-	parseRsaPubTopic = "Parsing Public Key Rsa"
+	signRsaTopic       = "Signing RSA"
+	verifyRsaTopic     = "Verifying RSA"
+	parseRsaPriTopic   = "Parsing Private Key RSA"
+	parseRsaPubTopic   = "Parsing Public Key RSA"
+	marshalRsaPriTopic = "Marshalling Private Key RSA"
+	marshalRsaPubTopic = "Marshalling Public Key RSA"
 )
 
 var (
@@ -25,6 +27,45 @@ var (
 	errParseRsaPub    = errors.New("Failed to parse RSA public key")
 	errCastTypeRsaPub = errors.New("Unsupported public key type")
 )
+
+func GenerateRsaKey(ctx context.Context, bits int) (*rsa.PrivateKey, error) {
+	logger := middleware.ContextData(ctx)
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return nil, err
+	}
+	logger.Debug(fmt.Sprintf("PrivateKey - %v", privateKey))
+	return privateKey, nil
+}
+
+func EncryptRsa(ctx context.Context, publicKey *rsa.PublicKey, message []byte) (*string, error) {
+	logger := middleware.ContextData(ctx)
+
+	encrypted, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, message)
+	if err != nil {
+		return nil, err
+	}
+	encryptedB64 := bToB64(encrypted)
+	logger.Debug(fmt.Sprintf("Encrypted Message - Base64 %q Hex \"%x\"\n", encryptedB64, encrypted))
+	return &encryptedB64, nil
+}
+
+func DecryptRsa(ctx context.Context, privateKey *rsa.PrivateKey, cipherText string) (*string, error) {
+	logger := middleware.ContextData(ctx)
+
+	cipherByte, err := b64ToB(cipherText)
+	if err != nil {
+		return nil, err
+	}
+	decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, cipherByte)
+	if err != nil {
+		return nil, err
+	}
+	decryptedStr := string(decrypted)
+	logger.Debug(fmt.Sprintf("Decrypted Message - Text %s", decryptedStr))
+	return &decryptedStr, nil
+}
 
 func SignRsa(ctx context.Context, privateKey *rsa.PrivateKey, hashType, message string) ([]byte, *string, error) {
 	logger := middleware.ContextData(ctx)
@@ -76,16 +117,33 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	if block == nil {
 		return nil, errors.Wrap(errParseRsaPub, parseRsaPubTopic)
 	}
-	publicKey, err := x509.ParsePKIXPublicKey([]byte(block.Bytes))
+	publicKey, err := x509.ParsePKCS1PublicKey([]byte(block.Bytes))
 	if err != nil {
 		return nil, errors.Wrap(err, parseRsaPubTopic)
 	}
-	switch pub := publicKey.(type) {
-	case *rsa.PublicKey:
-		return pub, nil
-	default:
-		return nil, errors.Wrap(errCastTypeRsaPub, parseRsaPubTopic)
-	}
+	return publicKey, nil
+}
+
+func MarshalRsaPrivateKey(privateKey *rsa.PrivateKey) ([]byte, error) {
+	privByte := x509.MarshalPKCS1PrivateKey(privateKey)
+	pem := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: privByte,
+		},
+	)
+	return pem, nil
+}
+
+func MarshalRsaPublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
+	pubByte := x509.MarshalPKCS1PublicKey(publicKey)
+	pem := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PUBLIC KEY",
+			Bytes: pubByte,
+		},
+	)
+	return pem, nil
 }
 
 func cryptoHash(hashType string) crypto.Hash {

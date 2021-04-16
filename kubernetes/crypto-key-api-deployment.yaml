@@ -19,13 +19,13 @@ spec:
         app: crypto-key-api-deployment
     spec:
       containers:
-      - name: crypto-key-api-deployment
-        image: kcskbcnd93.kcs:5000/dpki/crypto-key-api:0.0.3
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - name: crypto-key-api-configmap-volume
-          mountPath: /app/config
+        - name: crypto-key-api-deployment
+          image: kcskbcnd93.kcs:5000/dpki/crypto-key-api:0.0.4
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: crypto-key-api-configmap-volume
+              mountPath: /app/config
       volumes:
-      - name: crypto-key-api-configmap-volume
-        configMap:
-          name: crypto-key-api-configmap
+        - name: crypto-key-api-configmap-volume
+          configMap:
+            name: crypto-key-api-configmap

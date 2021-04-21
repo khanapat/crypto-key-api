@@ -16,6 +16,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"krungthai.com/khanapat/dpki/crypto-key-api/aes"
 	"krungthai.com/khanapat/dpki/crypto-key-api/docs"
 	_ "krungthai.com/khanapat/dpki/crypto-key-api/docs"
 	"krungthai.com/khanapat/dpki/crypto-key-api/ecdsa"
@@ -76,6 +77,14 @@ func main() {
 
 	cryptoRoute.Use(middleware.JSONMiddleware)
 	cryptoRoute.Use(middleware.ContextLogAndLoggingMiddleware)
+
+	cryptoRoute.Handle("/aes/encryption", aes.NewEncryptAesKey(
+		aes.NewEncryptAesKeyFn(),
+	)).Methods(http.MethodPost)
+
+	cryptoRoute.Handle("/aes/decryption", aes.NewDecryptAesKey(
+		aes.NewDecryptAesKeyFn(),
+	)).Methods(http.MethodPost)
 
 	cryptoRoute.Handle("/ecdsa", ecdsa.NewAsymmetricEcdsaKey(
 		ecdsa.NewGenerateEcdsaKeyFn(),

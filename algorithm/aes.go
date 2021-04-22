@@ -28,7 +28,7 @@ func EncryptAesBlockGCM(ctx context.Context, key, plainText string) (*string, *s
 		return nil, nil, err
 	}
 
-	ciphertext := aesgcm.Seal(nil, nonce, []byte(plainText), nil)
+	ciphertext := aesgcm.Seal(nonce, nonce, []byte(plainText), nil)
 	ciphertextB64 := bToB64(ciphertext)
 	nonceB64 := bToB64(nonce)
 	logger.Debug(fmt.Sprintf("Encrypted Message - Base64 %q Hex \"%x\" Nonce - Base64 %q Hex %x\n", ciphertextB64, ciphertext, nonceB64, nonce))
@@ -42,10 +42,10 @@ func DecryptAesBlockGCM(ctx context.Context, key, nonce, cipherText string) (*st
 	if err != nil {
 		return nil, err
 	}
-	byteNonce, err := b64ToB(nonce)
-	if err != nil {
-		return nil, err
-	}
+	// byteNonce, err := b64ToB(nonce)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	block, err := aes.NewCipher([]byte(key))
 	if err != nil {
@@ -64,6 +64,7 @@ func DecryptAesBlockGCM(ctx context.Context, key, nonce, cipherText string) (*st
 
 	// nonce, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
 	// logger.Debug(fmt.Sprintf("Nonce Size - %v | Nonce - %x", nonceSize, nonce))
+	byteNonce, byteText := byteText[:nonceSize], byteText[nonceSize:]
 	plaintext, err := aesgcm.Open(nil, byteNonce, byteText, nil)
 	if err != nil {
 		return nil, err

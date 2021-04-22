@@ -16,12 +16,12 @@ func NewDecryptRsaKeyFn() DecryptRsaKeyFn {
 
 		privateKey, err := algorithm.ParseRsaPrivateKeyFromPemStr(req.PrivateKey)
 		if err != nil {
-			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrBadRequestDesc, err.Error()), err
+			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrInternalServerDesc, err.Error()), err
 		}
 
 		decrypted, err := algorithm.DecryptRsa(ctx, privateKey, req.CipherText)
 		if err != nil {
-			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrBadRequestDesc, err.Error()), err
+			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrInternalServerDesc, err.Error()), err
 		}
 		decryptRsaKeyResponse := DecryptRsaKeyResponse{
 			DecryptedMessage: *decrypted,

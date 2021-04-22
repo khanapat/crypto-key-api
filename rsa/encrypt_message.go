@@ -16,11 +16,11 @@ func NewEncryptRsaKeyFn() EncryptRsaKeyFn {
 
 		publicKey, err := algorithm.ParseRsaPublicKeyFromPemStr(req.PublicKey)
 		if err != nil {
-			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrBadRequestDesc, err.Error()), err
+			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrInternalServerDesc, err.Error()), err
 		}
 		encrypted, err := algorithm.EncryptRsa(ctx, publicKey, []byte(req.Message))
 		if err != nil {
-			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrBadRequestDesc, err.Error()), err
+			return response.NewErrResponse(response.ErrInternalServerCode, response.ErrInternalServerDesc, err.Error()), err
 		}
 		encryptRsaKeyResponse := EncryptRsaKeyResponse{
 			EncryptedMessage: *encrypted,

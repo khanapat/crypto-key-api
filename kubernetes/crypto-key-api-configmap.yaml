@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: crypto-key-api-configmap
-  namespace: dpki
+  namespace: utility
 data:
   config.yaml: |+
     APP:

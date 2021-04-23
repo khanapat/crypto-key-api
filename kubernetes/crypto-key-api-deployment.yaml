@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crypto-key-api-deployment
-  namespace: dpki
+  namespace: utility
 spec:
   replicas: 1
   strategy:
@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: crypto-key-api-deployment
-          image: kcskbcnd93.kcs:5000/dpki/crypto-key-api:1.0.0
-          imagePullPolicy: IfNotPresent
+          image: kcskbcnd93.kcs:5000/utility/crypto-key-api:1.0.0
+          imagePullPolicy: Always
           volumeMounts:
             - name: crypto-key-api-configmap-volume
               mountPath: /app/config

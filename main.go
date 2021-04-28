@@ -26,6 +26,8 @@ import (
 	"krungthai.com/khanapat/dpki/crypto-key-api/rsa"
 )
 
+var isReady bool
+
 func init() {
 	runtime.GOMAXPROCS(1)
 	initViper()
@@ -114,6 +116,15 @@ func main() {
 		key.NewValidatePublicKeyFn(),
 	)).Methods(http.MethodPost)
 
+	route.HandleFunc("/liveness", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	route.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
+		if isReady {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		w.WriteHeader(http.StatusServiceUnavailable)
+	})
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("0.0.0.0:%s", viper.GetString("APP.PORT")),
 		Handler:      cfgCors.Handler(route),
@@ -129,6 +140,8 @@ func main() {
 			logger.Info(err.Error())
 		}
 	}()
+
+	isReady = true
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

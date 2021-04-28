@@ -25,6 +25,19 @@ spec:
           volumeMounts:
             - name: crypto-key-api-configmap-volume
               mountPath: /app/config
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 9090
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: crypto-key-api-configmap-volume
           configMap:

@@ -1,7 +1,7 @@
 # /bin/sh
 
 function printHelp() {
-  echo "Usage: This script can remove, build and push image from crypto-key-api on dpki project'"
+  echo "Usage: This script can remove, build and push image from crypto-key-api on utility project'"
   echo "       This script need 1 argument for processing including"
   echo "       1. Latest version of image"
   echo "                                                            "
@@ -21,13 +21,13 @@ version=$1
 
 echo "build image $version"
 
-docker build -t kcskbcnd93.kcs:5000/dpki/crypto-key-api:"$version" .
+docker build -t kcskbcnd93.kcs:5000/utility/crypto-key-api:"$version" .
 
 echo "push image $version"
 
-docker push kcskbcnd93.kcs:5000/dpki/crypto-key-api:"$version"
+docker push kcskbcnd93.kcs:5000/utility/crypto-key-api:"$version"
 
 echo "remove image in local"
 
-docker rmi -f kcskbcnd93.kcs:5000/dpki/crypto-key-api:"$version"
+docker rmi -f kcskbcnd93.kcs:5000/utility/crypto-key-api:"$version"
 

@@ -10,7 +10,6 @@ import (
 
 func NewLogConfig() *zap.Logger {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	encoderConfig.TimeKey = "timestamp"
 	encoderConfig.MessageKey = "message"
@@ -31,8 +30,10 @@ func NewLogConfig() *zap.Logger {
 	}
 	config.Level = zap.NewAtomicLevelAt(logLevel)
 	if viper.GetString("LOG.ENV") == "dev" {
+		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		config.Encoding = "console"
 	} else {
+		encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 		config.Encoding = "json"
 	}
 	config.EncoderConfig = encoderConfig
